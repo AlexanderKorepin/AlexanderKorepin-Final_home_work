@@ -78,120 +78,198 @@
    #### 6.
    ![](https://github.com/AlexanderKorepin/AlexanderKorepin-Final_home_work/blob/main/Foto/diagram.jpg).
    
-   #### 7. Создать таблицы с иерархией из диаграммы в БД
+ #### 7. В подключенном MySQL репозитории создать базу данных “Друзья
+человека”
+```sql
+CREATE DATABASE Human_friends;
+```
 
-   ```sql
-   CREATE TABLE Commands
-   (
-       id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-       name varchar(30),
-       description varchar(255)
-   );
-   
-   
-   CREATE TABLE AnimalGroup
-   (
-       id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-       name varchar(30)
-   );
-   
-   CREATE TABLE AnimalGenius
-   (
-       id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-       name varchar(30),
-       group_id INT,
-       FOREIGN KEY (group_id) REFERENCES AnimalGroup (id)
-       ON DELETE CASCADE ON UPDATE CASCADE
-   );
-   
-   CREATE TABLE KennelAnimal
-   (
-       id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-       name varchar(30),
-       birthDate DATE,
-       genius_id INT,
-       FOREIGN KEY (genius_id) REFERENCES AnimalGenius (id)
-       ON DELETE CASCADE ON UPDATE CASCADE
-   );
-   
-   CREATE TABLE AnimalCommands
-   (
-       animal_id INT NOT NULL,
-       command_id INT NOT NULL,
+#### 8. Создать таблицы с иерархией из диаграммы в БД
+```sql
+USE Human_friends;
+CREATE TABLE animal_classes
+(
+	Id INT AUTO_INCREMENT PRIMARY KEY, 
+	Class_name VARCHAR(20)
+);
 
-       PRIMARY KEY (animal_id, command_id),
-       FOREIGN KEY (animal_id) REFERENCES KennelAnimal (id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-       FOREIGN KEY (command_id) REFERENCES Commands (id)
-        ON DELETE CASCADE  ON UPDATE CASCADE
-   );
-   ```
-#### 8. Заполнить низкоуровневые таблицы именами (животных), командами которые они выполняют и датами рождения
-   
-   ```sql
-    USE HumanFriends;
+INSERT INTO animal_classes (Class_name)
+VALUES ('вьючные'),
+('домашние');  
 
-   INSERT INTO commands(name)
-   VALUES
-    ('Принести тапки'),
-    ('Вертеться в колесе'),
-    ('Галоп!'),
-    ('Поклон!'),
-    ('КАШ!');
-   
-   INSERT INTO AnimalGroup (name)
-   VALUES
-    ('Вьючные животные'),
-    ('Домашние животные');
-   
-   INSERT INTO AnimalGenius (name, group_id)
-   VALUES
-    ('Лошадь', 1),
-    ('Верблюд', 1),
-    ('Осел', 1),
-    ('Кошка', 2),
-    ('Собака', 2),
-    ('Хомяк', 2);
-   
-   INSERT INTO KennelAnimal (name, birthDate, genius_id)
-   VALUES
-    ('Гнедой', '2021-02-04', 1),
-    ('Гнедой_2', '2022-12-01', 1),
-    ('Тупица', '2020-08-24', 3),
-    ('Рыжий', '2022-05-20', 2),
-    ('Песик', '2023-01-24', 5),
-    ('Хомяк', '2022-12-20', 6),
-    ('Эльза', '2022-07-12', 4);
-   
-   INSERT INTO AnimalCommands (animal_id, command_id)
-   VALUES
-    (1, 3), (2, 3), (2, 4), (3, 4),
-    (4, 5), (5, 1), (5, 4), (6, 2),
-    (7, 1);
-   ```
-#### 9. Удалив из таблицы верблюдов, т.к. верблюдов решили перевезти в другой питомник на зимовку. Объединить таблицы лошади, и ослы в одну таблицу.
-   ```sql
-      USE HumanFriends;
-      DELETE FROM KennelAnimal WHERE genius_id = 2;
-   
-      CREATE TABLE HorseAndDonkey AS
-	  SELECT * from KennelAnimal WHERE genius_id = 1
-      UNION
-      SELECT * from KennelAnimal WHERE genius_id = 3;
-   ```
-#### 10. Создать новую таблицу “молодые животные” в которую попадут всеживотные старше 1 года, но младше 3 лет и в отдельном столбце с точностьюдо месяца подсчитать возраст животных в новой таблице
 
-   ```sql
-      CREATE TABLE YoungAnimals AS
-         SELECT id, name, birthDate, 
-         datediff(curdate(),birthDate) DIV 31 as age, genius_id 
-         from KennelAnimal 
-         WHERE date_add(birthDate, INTERVAL 1 YEAR) < curdate() 
-               AND date_add(birthDate, INTERVAL 3 YEAR) > curdate();
-   ```
-#### 11. Объединить все таблицы в одну, при этом сохраняя поля, указывающие напрошлую принадлежность к старым таблицам.
-   ```sql
-      SELECT id, name, birthDate, genius_id FROM HorseDonkey
-      UNION
-      SELECT id, name, birthDate, genius_id FROM YoungAnimals;
-   ```
+CREATE TABLE packed_animals
+(
+	  Id INT AUTO_INCREMENT PRIMARY KEY,
+    Genus_name VARCHAR (20),
+    Class_id INT,
+    FOREIGN KEY (Class_id) REFERENCES animal_classes (Id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+INSERT INTO packed_animals (Genus_name, Class_id)
+VALUES ('Лошади', 1),
+('Ослы', 1),  
+('Верблюды', 1); 
+    
+CREATE TABLE home_animals
+(
+	  Id INT AUTO_INCREMENT PRIMARY KEY,
+    Genus_name VARCHAR (20),
+    Class_id INT,
+    FOREIGN KEY (Class_id) REFERENCES animal_classes (Id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+INSERT INTO home_animals (Genus_name, Class_id)
+VALUES ('Кошки', 2),
+('Собаки', 2),  
+('Хомяки', 2); 
+
+CREATE TABLE cats 
+(       
+    Id INT AUTO_INCREMENT PRIMARY KEY, 
+    Name VARCHAR(20), 
+    Birthday DATE,
+    Commands VARCHAR(50),
+    Genus_id int,
+    Foreign KEY (Genus_id) REFERENCES home_animals (Id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+```
+#### 9. Заполнить низкоуровневые таблицы именами(животных), командами
+которые они выполняют и датами рождения
+```sql
+INSERT INTO cats (Name, Birthday, Commands, Genus_id)
+VALUES ('Пупа', '2011-01-01', 'кс-кс-кс', 1),
+('Олег', '2016-01-01', "отставить!", 1),  
+('Тьма', '2017-01-01', "", 1); 
+
+CREATE TABLE dogs 
+(       
+    Id INT AUTO_INCREMENT PRIMARY KEY, 
+    Name VARCHAR(20), 
+    Birthday DATE,
+    Commands VARCHAR(50),
+    Genus_id int,
+    Foreign KEY (Genus_id) REFERENCES home_animals (Id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+INSERT INTO dogs (Name, Birthday, Commands, Genus_id)
+VALUES ('Дик', '2020-01-01', 'ко мне, лежать, лапу, голос', 2),
+('Граф', '2021-06-12', "сидеть, лежать, лапу", 2),  
+('Шарик', '2018-05-01', "сидеть, лежать, лапу, след, фас", 2), 
+('Босс', '2021-05-10', "сидеть, лежать, фу, место", 2);
+
+CREATE TABLE hamsters 
+(       
+    Id INT AUTO_INCREMENT PRIMARY KEY, 
+    Name VARCHAR(20), 
+    Birthday DATE,
+    Commands VARCHAR(50),
+    Genus_id int,
+    Foreign KEY (Genus_id) REFERENCES home_animals (Id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+INSERT INTO hamsters (Name, Birthday, Commands, Genus_id)
+VALUES ('Малой', '2020-10-12', '', 3),
+('Медведь', '2021-03-12', "атака сверху", 3),  
+('Ниндзя', '2022-07-11', NULL, 3), 
+('Бурый', '2022-05-10', NULL, 3);
+
+CREATE TABLE horses 
+(       
+    Id INT AUTO_INCREMENT PRIMARY KEY, 
+    Name VARCHAR(20), 
+    Birthday DATE,
+    Commands VARCHAR(50),
+    Genus_id int,
+    Foreign KEY (Genus_id) REFERENCES packed_animals (Id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+INSERT INTO horses (Name, Birthday, Commands, Genus_id)
+VALUES ('Гром', '2020-01-12', 'бегом, шагом', 1),
+('Закат', '2017-03-12', "бегом, шагом, хоп", 1),  
+('Байкал', '2016-07-12', "бегом, шагом, хоп, брр", 1), 
+('Молния', '2020-11-10', "бегом, шагом, хоп", 1);
+
+CREATE TABLE donkeys 
+(       
+    Id INT AUTO_INCREMENT PRIMARY KEY, 
+    Name VARCHAR(20), 
+    Birthday DATE,
+    Commands VARCHAR(50),
+    Genus_id int,
+    Foreign KEY (Genus_id) REFERENCES packed_animals (Id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+INSERT INTO donkeys (Name, Birthday, Commands, Genus_id)
+VALUES ('Первый', '2019-04-10', NULL, 2),
+('Второй', '2020-03-12', "", 2),  
+('Третий', '2021-07-12', "", 2), 
+('Четвертый', '2022-12-10', NULL, 2);
+
+CREATE TABLE camels 
+(       
+    Id INT AUTO_INCREMENT PRIMARY KEY, 
+    Name VARCHAR(20), 
+    Birthday DATE,
+    Commands VARCHAR(50),
+    Genus_id int,
+    Foreign KEY (Genus_id) REFERENCES packed_animals (Id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+INSERT INTO camels (Name, Birthday, Commands, Genus_id)
+VALUES ('Горбатый', '2022-04-10', 'вернись', 3),
+('Самец', '2019-03-12', "остановись", 3),  
+('Сифон', '2015-07-12', "повернись", 3), 
+('Борода', '2022-12-10', "улыбнись", 3);
+```
+
+#### 10. Удалив из таблицы верблюдов, т.к. верблюдов решили перевезти в другой
+питомник на зимовку. Объединить таблицы лошади, и ослы в одну таблицу.
+```sql
+SET SQL_SAFE_UPDATES = 0;
+DELETE FROM camels;
+
+SELECT Name, Birthday, Commands FROM horses
+UNION SELECT  Name, Birthday, Commands FROM donkeys;
+```
+
+#### 11. Создать новую таблицу “молодые животные” в которую попадут все
+животные старше 1 года, но младше 3 лет и в отдельном столбце с точностью
+до месяца подсчитать возраст животных в новой таблице
+```sql
+CREATE TEMPORARY TABLE animals AS 
+SELECT *, 'Лошади' as genus FROM horses
+UNION SELECT *, 'Ослы' AS genus FROM donkeys
+UNION SELECT *, 'Собаки' AS genus FROM dogs
+UNION SELECT *, 'Кошки' AS genus FROM cats
+UNION SELECT *, 'Хомяки' AS genus FROM hamsters;
+
+CREATE TABLE yang_animal AS
+SELECT Name, Birthday, Commands, genus, TIMESTAMPDIFF(MONTH, Birthday, CURDATE()) AS Age_in_month
+FROM animals WHERE Birthday BETWEEN ADDDATE(curdate(), INTERVAL -3 YEAR) AND ADDDATE(CURDATE(), INTERVAL -1 YEAR);
+ 
+SELECT * FROM yang_animal;
+```
+#### 12. Объединить все таблицы в одну, при этом сохраняя поля, указывающие на
+прошлую принадлежность к старым таблицам.
+```sql
+SELECT h.Name, h.Birthday, h.Commands, pa.Genus_name, ya.Age_in_month 
+FROM horses h
+LEFT JOIN yang_animal ya ON ya.Name = h.Name
+LEFT JOIN packed_animals pa ON pa.Id = h.Genus_id
+UNION 
+SELECT d.Name, d.Birthday, d.Commands, pa.Genus_name, ya.Age_in_month 
+FROM donkeys d 
+LEFT JOIN yang_animal ya ON ya.Name = d.Name
+LEFT JOIN packed_animals pa ON pa.Id = d.Genus_id
+UNION
+SELECT c.Name, c.Birthday, c.Commands, ha.Genus_name, ya.Age_in_month 
+FROM cats c
+LEFT JOIN yang_animal ya ON ya.Name = c.Name
+LEFT JOIN home_animals ha ON ha.Id = c.Genus_id
+UNION
+SELECT d.Name, d.Birthday, d.Commands, ha.Genus_name, ya.Age_in_month 
+FROM dogs d
+LEFT JOIN yang_animal ya ON ya.Name = d.Name
+LEFT JOIN home_animals ha ON ha.Id = d.Genus_id
+UNION
+SELECT hm.Name, hm.Birthday, hm.Commands, ha.Genus_name, ya.Age_in_month 
+FROM hamsters hm
+LEFT JOIN yang_animal ya ON ya.Name = hm.Name
+LEFT JOIN home_animals ha ON ha.Id = hm.Genus_id;
+```
