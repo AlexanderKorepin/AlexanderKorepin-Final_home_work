@@ -267,3 +267,5 @@ FROM hamsters hm
 LEFT JOIN yang_animal ya ON ya.Name = hm.Name
 LEFT JOIN home_animals ha ON ha.Id = hm.Genus_id;
 ```
+#### 13. , 14. , 15. - 
+[-= Перейти к программе =-](https://github.com/AlexanderKorepin/AlexanderKorepin-Final_home_work/tree/main/Program)
